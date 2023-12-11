@@ -64,7 +64,7 @@ def get_bus_indexes(df)->list:
         list: List of indexes where 'bus' values exceed twice the mean.
     """
     # Write your logic here
-    df = pd.read_csv(path)
+    #df = pd.read_csv(path)
     bus_mean = np.mean(df["bus"])
 
     result = list(np.where(df["bus"] > 2 * bus_mean)[0])
@@ -83,7 +83,7 @@ def filter_routes(df)->list:
         list: List of route names with average 'truck' values greater than 7.
     """
     # Write your logic here
-    df = pd.read_csv(path)
+    #df = pd.read_csv(path)
 
     # target -->route column values
     result = sorted(df.loc[df["truck"] > 7, "route"].unique())
@@ -103,7 +103,7 @@ def multiply_matrix(matrix)->pd.DataFrame:
         pandas.DataFrame: Modified matrix with values multiplied based on custom conditions.
     """
     # Write your logic here
-    df2 = df.copy()
+    df2 = matrix.copy()
     multiplied_matrix = np.where(df2 > 20, df2 * 0.75, df2 * 1.25)
     multiplied_matrix = np.round(multiplied_matrix, 1)
     return pd.DataFrame(multiplied_matrix, columns=df2.columns, index=df2.index)
