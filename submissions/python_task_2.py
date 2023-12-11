@@ -80,18 +80,18 @@ def unroll_distance_matrix(distance_matrix)->pd.DataFrame():
                      26.7, 8.5, 10.7, 10.6, 16.0]
     })
 
-    # Append the new rows to the existing DataFrame
+    
 
-    # Create empty arrays to store unrolled distances
+    
     id_starts = np.array([])
     id_ends = np.array([])
     distances = np.array([])
 
     for i in range(len(unique_ids)):
         for j in range(len(unique_ids)):
-            # Skip combinations where id_start is equal to id_end or distance is 0
+            
             if i != j and distance_matrix.iloc[i, j] != 0:
-                # Check if the combination already exists in existing_df
+                
                 if not ((existing_df['id_start'] == unique_ids[i]) & (existing_df['id_end'] == unique_ids[j])).any():
                     id_starts = np.append(id_starts, unique_ids[i])
                     id_ends = np.append(id_ends, unique_ids[j])
@@ -120,22 +120,22 @@ def find_ids_within_ten_percentage_threshold(df, reference_id)->pd.DataFrame():
     # Write your logic here
     reference_rows = df[df['id_start'] == reference_value]
 
-    # Check if any rows match the reference value
+    
     if reference_rows.empty:
         print(f"No matching rows found for the reference value {reference_value}.")
         return []
 
-    # Calculate the average distance for the reference value
+    
     reference_average = reference_rows['distance'].mean()
 
-    # Calculate the threshold values (10% above and below the average)
+    
     lower_threshold = reference_average - (0.1 * reference_average)
     upper_threshold = reference_average + (0.1 * reference_average)
 
-    # Filter rows within the 10% threshold
+    
     filtered_rows = df[(df['distance'] >= lower_threshold) & (df['distance'] <= upper_threshold)]
 
-    # Extract unique values from the id_start column, convert to integers, and sort them
+    
     result_ids = sorted(filtered_rows['id_start'].astype(int).unique())
 
     return result_ids
@@ -156,7 +156,7 @@ def calculate_toll_rate(df)->pd.DataFrame():
     # Wrie your logic here
     rate_coefficients = {'moto': 0.8, 'car': 1.2, 'rv': 1.5, 'bus': 2.2, 'truck': 3.6}
 
-    # Calculate toll rates for each vehicle type
+    
     for vehicle_type, rate_coefficient in rate_coefficients.items():
         df[vehicle_type] = df['distance'] * rate_coefficient
 
@@ -176,5 +176,47 @@ def calculate_time_based_toll_rates(df)->pd.DataFrame():
         pandas.DataFrame
     """
     # Write your logic here
+    weekday_time_ranges = [(time(0, 0, 0), time(10, 0, 0)),
+                           (time(10, 0, 0), time(18, 0, 0)),
+                           (time(18, 0, 0), time(23, 59, 59))]
+    weekend_time_ranges = [(time(0, 0, 0), time(23, 59, 59))]
 
-    return df
+    weekday_discount_factors = np.array([0.8, 1.2, 0.8])
+    weekend_discount_factor = 0.7
+
+    
+    start_day_list = []
+    start_time_list = []
+    end_day_list = []
+    end_time_list = []
+    toll_list = []
+
+    for _, row in df.iterrows():
+        id_start = row['id_start']
+        id_end = row['id_end']
+
+        for start_time, end_time in weekday_time_ranges if row['start_day'] in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] else weekend_time_ranges:
+            start_day_list.append(row['start_day'])
+            start_time_list.append(start_time)
+            end_day_list.append(row['end_day'])
+            end_time_list.append(end_time)
+            
+            distance = row['distance']
+            
+            discount_factor = weekday_discount_factors if row['start_day'] in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] else weekend_discount_factor
+
+            toll = distance * discount_factor
+            toll_list.append(toll)
+
+    
+    result_df = pd.DataFrame({
+        'start_day': start_day_list,
+        'start_time': start_time_list,
+        'end_day': end_day_list,
+        'end_time': end_time_list,
+        'time_based_toll': toll_list
+    })
+
+    return result_df
+
+    #return df
